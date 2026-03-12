@@ -1,0 +1,1 @@
+Takut tugasnya sulit bngt
