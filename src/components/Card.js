@@ -22,23 +22,37 @@ function Card({ card, isFlipped, isMatched, onFlip }) {
   return (
     <div
       onClick={handleClick}
-      className={`w-20 h-20 flex items-center justify-center text-3xl rounded-xl cursor-pointer select-none
-      transition-all duration-500 transform perspective-500
-      ${isOpen
-        ? 'bg-white/95 shadow-lg shadow-white/20 scale-100 rotate-0'
-        : 'bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 shadow-md hover:scale-110 hover:shadow-xl hover:shadow-purple-500/40 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-600'
-      }
-      ${isMatched ? 'animate-matched ring-2 ring-green-400/70 opacity-90' : ''}
-      ${!isOpen ? 'hover:rotate-3' : ''}`}
+      className="w-22 h-22 cursor-pointer select-none"
+      style={{ perspective: '600px' }}
     >
-      {/* Tampilkan icon jika kartu terbuka atau sudah cocok, tampilkan ? jika tertutup */}
-      {isOpen ? (
-        <span className="animate-card-flip">
-          <IconComponent style={{ color: card.color }} />
-        </span>
-      ) : (
-        <FaQuestion className="text-white/50 text-xl transition-all duration-300 hover:text-white/80" />
-      )}
+      {/* Inner card container dengan 3D transform */}
+      <div
+        className="relative w-full h-full"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: isOpen ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transition: 'transform 0.5s ease-in-out',
+        }}
+      >
+        {/* Sisi depan kartu (tanda tanya) */}
+        <div
+          className={`absolute inset-0 flex items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-indigo-500 border border-white/40 shadow-lg shadow-purple-400/40 hover:shadow-xl hover:shadow-fuchsia-400/50 ${!isOpen ? 'hover:scale-105' : ''} transition-transform duration-200`}
+          style={{ backfaceVisibility: 'hidden' }}
+        >
+          <FaQuestion className="text-white/80 text-2xl drop-shadow-md" />
+        </div>
+
+        {/* Sisi belakang kartu (icon) */}
+        <div
+          className={`absolute inset-0 flex items-center justify-center rounded-2xl bg-white/95 shadow-lg shadow-white/20 border border-white/30 ${isMatched ? 'animate-glow ring-2 ring-green-400/60 opacity-80' : ''}`}
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+          }}
+        >
+          <IconComponent className="text-4xl" style={{ color: card.color }} />
+        </div>
+      </div>
     </div>
   );
 }

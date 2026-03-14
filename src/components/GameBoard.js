@@ -11,26 +11,18 @@ import Card from './Card';
 function GameBoard({ cards, flippedCards, matchedCards, onFlip }) {
   return (
     // Grid container 4 kolom untuk menampilkan kartu
-    // Menggunakan inline style untuk grid agar kompatibel dengan Tailwind v4
-    <div
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', justifyItems: 'center' }}
-    >
-      {cards.map((card, index) => (
-        // Render komponen Card untuk setiap kartu dengan animasi fade-in bertahap
+    <div className="grid grid-cols-4 gap-4 justify-items-center">
+      {cards.map((card) => (
+        // Render komponen Card untuk setiap kartu
         // isFlipped: cek apakah id kartu ada di array flippedCards
         // isMatched: cek apakah id kartu ada di array matchedCards
-        <div
+        <Card
           key={card.id}
-          className="animate-fade-in"
-          style={{ animationDelay: `${index * 50}ms` }}
-        >
-          <Card
-            card={card}
-            isFlipped={flippedCards.includes(card.id)}
-            isMatched={matchedCards.includes(card.id)}
-            onFlip={onFlip}
-          />
-        </div>
+          card={card}
+          isFlipped={flippedCards.includes(card.id)}
+          isMatched={matchedCards.includes(card.id)}
+          onFlip={onFlip}
+        />
       ))}
     </div>
   );

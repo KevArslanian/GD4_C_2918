@@ -6,27 +6,36 @@ import GameBoard from '../components/GameBoard';
 import ScoreBoard from '../components/ScoreBoard';
 import DifficultySelector from '../components/DifficultySelector';
 // Import react-icons
-import { GiCardJoker } from 'react-icons/gi';
-import { FaAppleAlt, FaLemon, FaHeart, FaStar, FaGem, FaBolt, FaCrown, FaSnowflake } from 'react-icons/fa';
+import { GiPerspectiveDiceSixFacesRandom } from 'react-icons/gi';
+import { FaApple, FaLemon, FaHeart, FaStar, FaGem, FaBolt, FaFire, FaMoon } from 'react-icons/fa';
 
-// Daftar lengkap icon untuk semua tingkat kesulitan (8 pasang = 16 kartu maksimal)
+// Daftar icon untuk setiap tingkat kesulitan
 // Easy menggunakan 4 icon pertama, Medium 6 icon, Hard semua 8 icon
-const ALL_ICONS = [
-  { icon: FaAppleAlt, color: '#ef4444' },
-  { icon: FaLemon, color: '#eab308' },
-  { icon: FaHeart, color: '#ec4899' },
-  { icon: FaStar, color: '#f97316' },
-  { icon: FaGem, color: '#06b6d4' },
-  { icon: FaBolt, color: '#a855f7' },
-  { icon: FaCrown, color: '#f59e0b' },
-  { icon: FaSnowflake, color: '#3b82f6' },
-];
-
-// Jumlah pasangan per tingkat kesulitan
-const DIFFICULTY_PAIRS = {
-  easy: 4,
-  medium: 6,
-  hard: 8,
+const DIFFICULTY_ICONS = {
+  easy: [
+    { icon: FaApple, color: '#ef4444' },
+    { icon: FaLemon, color: '#eab308' },
+    { icon: FaHeart, color: '#ec4899' },
+    { icon: FaStar, color: '#f97316' },
+  ],
+  medium: [
+    { icon: FaApple, color: '#ef4444' },
+    { icon: FaLemon, color: '#eab308' },
+    { icon: FaHeart, color: '#ec4899' },
+    { icon: FaStar, color: '#f97316' },
+    { icon: FaBolt, color: '#3b82f6' },
+    { icon: FaGem, color: '#8b5cf6' },
+  ],
+  hard: [
+    { icon: FaApple, color: '#ef4444' },
+    { icon: FaLemon, color: '#eab308' },
+    { icon: FaHeart, color: '#ec4899' },
+    { icon: FaStar, color: '#f97316' },
+    { icon: FaBolt, color: '#3b82f6' },
+    { icon: FaGem, color: '#8b5cf6' },
+    { icon: FaFire, color: '#f59e0b' },
+    { icon: FaMoon, color: '#6366f1' },
+  ],
 };
 
 // Fungsi untuk mengacak urutan array menggunakan algoritma Fisher-Yates
@@ -40,10 +49,9 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
-// Fungsi untuk membuat set kartu baru berdasarkan jumlah pasangan
-// Mengambil icon sesuai jumlah pairs, menggandakan, lalu mengacak
-const createCards = (pairs) => {
-  const icons = ALL_ICONS.slice(0, pairs);
+// Fungsi untuk membuat set kartu baru berdasarkan tingkat kesulitan
+// Mengambil icon sesuai difficulty, menggandakan, lalu mengacak
+const createCards = (icons) => {
   const paired = icons.flatMap((item, index) => [
     { id: index * 2, icon: item.icon, color: item.color, pairId: index },
     { id: index * 2 + 1, icon: item.icon, color: item.color, pairId: index },
@@ -77,16 +85,25 @@ export default function Home() {
   const timerRef = useRef(null);
 
   // Jumlah pasangan berdasarkan difficulty yang dipilih
-  const totalPairs = DIFFICULTY_PAIRS[difficulty];
+  const icons = DIFFICULTY_ICONS[difficulty];
+  const totalPairs = icons.length;
 
   // useEffect untuk inisialisasi kartu saat komponen pertama kali dirender
   // atau saat difficulty berubah
   useEffect(() => {
-    setCards(createCards(totalPairs));
-  }, [totalPairs]);
+    setCards(createCards(icons));
+    // Timer dimulai otomatis saat difficulty berubah sesuai referensi
+    setTimer(0);
+    setMoves(0);
+    setMatchedCards([]);
+    setFlippedCards([]);
+    // Reset isPlaying to trigger timer restart
+    setIsPlaying(false);
+    setTimeout(() => setIsPlaying(true), 0);
+  }, [difficulty]);
 
-  // useEffect untuk menjalankan timer setiap detik saat isPlaying = true
-  // Timer berjalan otomatis saat pemain mulai membalik kartu pertama
+  // useEffect untuk menjalankan timer setiap detik
+  // Timer berjalan otomatis saat halaman dimuat sesuai referensi
   useEffect(() => {
     if (isPlaying) {
       timerRef.current = setInterval(() => {
@@ -97,6 +114,7 @@ export default function Home() {
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
   }, [isPlaying]);
@@ -136,11 +154,6 @@ export default function Home() {
   // Fungsi untuk membalik kartu ketika diklik
   // Menerima parameter 'id' untuk mengidentifikasi kartu yang diklik
   const handleCardFlip = (id) => {
-    // Mulai timer saat kartu pertama dibalik
-    if (!isPlaying && matchedCards.length === 0 && moves === 0) {
-      setIsPlaying(true);
-    }
-
     // Hanya izinkan membalik jika kurang dari 2 kartu terbuka
     // dan kartu yang diklik bukan kartu yang sudah terbuka
     if (flippedCards.length < 2 && !flippedCards.includes(id)) {
@@ -150,52 +163,42 @@ export default function Home() {
 
   // Fungsi untuk mereset permainan ke kondisi awal
   const resetGame = () => {
-    setCards(createCards(totalPairs));
+    setCards(createCards(icons));
     setFlippedCards([]);
     setMatchedCards([]);
     setMoves(0);
     setTimer(0);
+    // Reset isPlaying untuk restart timer
     setIsPlaying(false);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
+    setTimeout(() => setIsPlaying(true), 0);
   };
 
   // Fungsi untuk mengubah tingkat kesulitan
-  // Saat difficulty berubah, permainan akan direset otomatis
+  // Saat difficulty berubah, permainan akan direset otomatis via useEffect
   const handleDifficultyChange = (newDifficulty) => {
     setDifficulty(newDifficulty);
-    setFlippedCards([]);
-    setMatchedCards([]);
-    setMoves(0);
-    setTimer(0);
-    setIsPlaying(false);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
   };
 
   return (
     // Container utama dengan background gradient gelap dan tinggi minimal sesuai viewport
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 animate-gradient p-4 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/4 -left-20 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-10 right-1/3 w-40 h-40 bg-pink-600/10 rounded-full blur-2xl"></div>
       </div>
 
       <div className="relative z-10 flex flex-col items-center">
-        {/* Judul aplikasi dengan efek gradient text */}
-        <h1 className="text-5xl font-bold mb-5 flex items-center gap-3">
-          <GiCardJoker className="text-yellow-400 text-5xl drop-shadow-lg" />
-          <span className="bg-gradient-to-r from-purple-300 via-pink-300 to-yellow-300 bg-clip-text text-transparent drop-shadow-lg">
-            Memory Card
-          </span>
+        {/* Judul aplikasi dengan efek gradient text dan animasi float */}
+        <h1 className="text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-pink-300 to-purple-300 drop-shadow-lg animate-float tracking-tight flex items-center gap-3">
+          <GiPerspectiveDiceSixFacesRandom className="text-yellow-300 text-5xl drop-shadow-lg" />
+          Memory Card
         </h1>
 
         {/* Komponen DifficultySelector untuk memilih tingkat kesulitan */}
         <DifficultySelector
-          difficulty={difficulty}
+          currentDifficulty={difficulty}
           onSelect={handleDifficultyChange}
         />
 
@@ -209,8 +212,7 @@ export default function Home() {
         />
 
         {/* Komponen GameBoard untuk menampilkan grid kartu */}
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl shadow-2xl
-        transition-all duration-500 hover:shadow-purple-500/10 hover:border-white/20">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-3xl shadow-2xl shadow-purple-900/30">
           <GameBoard
             cards={cards}
             flippedCards={flippedCards}
