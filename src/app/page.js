@@ -6,7 +6,7 @@ import GameBoard from '../components/GameBoard';
 import ScoreBoard from '../components/ScoreBoard';
 import DifficultySelector from '../components/DifficultySelector';
 // Import react-icons
-import { GiPerspectiveDiceSixFacesRandom } from 'react-icons/gi';
+import { GiCardJoker } from 'react-icons/gi';
 import { FaApple, FaLemon, FaHeart, FaStar, FaGem, FaBolt, FaFire, FaMoon } from 'react-icons/fa';
 
 // Daftar icon untuk setiap tingkat kesulitan
@@ -192,7 +192,7 @@ export default function Home() {
       <div className="relative z-10 flex flex-col items-center">
         {/* Judul aplikasi dengan efek gradient text dan animasi float */}
         <h1 className="text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-pink-300 to-purple-300 drop-shadow-lg animate-float tracking-tight flex items-center gap-3">
-          <GiPerspectiveDiceSixFacesRandom className="text-yellow-300 text-5xl drop-shadow-lg" />
+          <GiCardJoker className="text-yellow-300 text-5xl drop-shadow-lg" />
           Memory Card
         </h1>
 
